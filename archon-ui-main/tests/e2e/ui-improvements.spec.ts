@@ -3,130 +3,13 @@ import { test, expect } from '@playwright/test';
 /**
  * UI Improvements E2E Tests
  *
- * Tests for Phase 1 (3D Card Tilt) and Phase 2 (Mermaid Diagrams)
+ * Tests for Phase 2 (Mermaid Diagrams) and Phase 3 (Summary Tab)
  *
  * Prerequisites:
  * - Frontend running on localhost:3737
  * - Backend running on localhost:8181
  * - At least one knowledge item in the database
  */
-
-test.describe('Phase 1: 3D Card Tilt Effect', () => {
-
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-  });
-
-  test('Knowledge Base page loads with cards', async ({ page }) => {
-    // Check for Knowledge Base header
-    const header = page.locator('h1:has-text("Knowledge Base")');
-    await expect(header).toBeVisible({ timeout: 5000 });
-
-    // Check for at least one knowledge card (if data exists)
-    const cards = page.locator('[role="button"].card-3d');
-    const cardCount = await cards.count();
-
-    // Log card count for debugging
-    console.log(`Found ${cardCount} knowledge cards`);
-  });
-
-  test('Card has 3D tilt class applied', async ({ page }) => {
-    // Wait for cards to render
-    const cards = page.locator('[role="button"].card-3d');
-
-    // Skip if no cards (no data)
-    const cardCount = await cards.count();
-    if (cardCount === 0) {
-      test.skip();
-      return;
-    }
-
-    const firstCard = cards.first();
-    await expect(firstCard).toBeVisible();
-
-    // Verify card-3d class is present
-    await expect(firstCard).toHaveClass(/card-3d/);
-  });
-
-  test('Card responds to hover with transform', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
-
-    const cardCount = await cards.count();
-    if (cardCount === 0) {
-      test.skip();
-      return;
-    }
-
-    const firstCard = cards.first();
-    await expect(firstCard).toBeVisible();
-
-    // Get initial transform
-    const initialTransform = await firstCard.evaluate(el =>
-      window.getComputedStyle(el).transform
-    );
-
-    // Hover over the card
-    await firstCard.hover();
-
-    // Wait for transition
-    await page.waitForTimeout(400);
-
-    // Get transform after hover
-    const hoverTransform = await firstCard.evaluate(el =>
-      window.getComputedStyle(el).transform
-    );
-
-    // Transform should change on hover (perspective + rotation)
-    // Note: Both might be 'none' or 'matrix(...)' - we check inline style instead
-    const hasInlineTransform = await firstCard.evaluate(el =>
-      el.style.transform.includes('perspective')
-    );
-
-    expect(hasInlineTransform).toBe(true);
-  });
-
-  test('Card has reflection overlay element', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
-
-    const cardCount = await cards.count();
-    if (cardCount === 0) {
-      test.skip();
-      return;
-    }
-
-    // Check for card-reflection class within cards
-    const reflectionOverlay = page.locator('.card-3d .card-reflection');
-    const reflectionCount = await reflectionOverlay.count();
-
-    // Should have reflection overlays
-    expect(reflectionCount).toBeGreaterThan(0);
-  });
-
-  test('Card click triggers bounce animation', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
-
-    const cardCount = await cards.count();
-    if (cardCount === 0) {
-      test.skip();
-      return;
-    }
-
-    const firstCard = cards.first();
-
-    // Click the card
-    await firstCard.click();
-
-    // Wait a bit for animation to potentially start
-    await page.waitForTimeout(100);
-
-    // Check if card-bounce animation was applied (it gets cleared after)
-    // This is tricky to test - we mainly verify the click doesn't break anything
-    // and the inspector modal opens
-    const inspector = page.locator('[role="dialog"]');
-    await expect(inspector).toBeVisible({ timeout: 3000 });
-  });
-});
 
 test.describe('Phase 2: Mermaid Diagram Support', () => {
 
@@ -160,7 +43,7 @@ test.describe('Phase 2: Mermaid Diagram Support', () => {
     await page.waitForLoadState('networkidle');
 
     // Check if there are knowledge cards
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -174,6 +57,10 @@ test.describe('Phase 2: Mermaid Diagram Support', () => {
     // Wait for inspector modal
     const inspector = page.locator('[role="dialog"]');
     await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Switch to Documents tab to see content
+    const documentsTab = inspector.locator('button:has-text("Documents")');
+    await documentsTab.click();
 
     // Check for content viewer area
     const contentArea = inspector.locator('.prose, pre');
@@ -216,7 +103,7 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 
   test('Inspector opens with Summary tab as default', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -238,7 +125,7 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 
   test('Summary tab displays AI-generated summary', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -257,7 +144,7 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 
   test('Summary tab has copy button when content exists', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -282,7 +169,7 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 
   test('Can switch between Summary, Documents, and Code tabs', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -319,7 +206,7 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 
   test('Summary view shows character count when content exists', async ({ page }) => {
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -344,13 +231,13 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 });
 
-test.describe('Integration: Card Interaction Flow', () => {
+test.describe('Integration: Knowledge Card Flow', () => {
 
-  test('Full interaction flow: hover -> click -> view content -> close', async ({ page }) => {
+  test('Full interaction flow: click card -> view summary -> switch tabs -> close', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    const cards = page.locator('[role="button"].card-3d');
+    const cards = page.locator('[role="button"].group');
     const cardCount = await cards.count();
 
     if (cardCount === 0) {
@@ -361,37 +248,29 @@ test.describe('Integration: Card Interaction Flow', () => {
 
     const firstCard = cards.first();
 
-    // 1. Hover - should trigger tilt
-    await firstCard.hover();
-    await page.waitForTimeout(300);
-
-    // Verify tilt is applied
-    const hasTransform = await firstCard.evaluate(el =>
-      el.style.transform.includes('rotateX') || el.style.transform.includes('rotateY')
-    );
-    expect(hasTransform).toBe(true);
-
-    // 2. Click - should open inspector
+    // 1. Click - should open inspector with Summary tab
     await firstCard.click();
 
     const inspector = page.locator('[role="dialog"]');
     await expect(inspector).toBeVisible({ timeout: 5000 });
 
-    // 3. Verify content is displayed
-    const content = inspector.locator('.prose, pre, code').first();
-    await expect(content).toBeVisible({ timeout: 3000 });
+    // 2. Verify Summary tab is active
+    const summaryTab = inspector.locator('button:has-text("Summary")');
+    await expect(summaryTab).toHaveClass(/text-cyan-400/);
 
-    // 4. Close modal (Escape or click outside)
+    // 3. Switch to Documents tab
+    const documentsTab = inspector.locator('button:has-text("Documents")');
+    await documentsTab.click();
+    await expect(documentsTab).toHaveClass(/text-cyan-400/);
+
+    // 4. Verify sidebar is visible
+    const sidebar = inspector.locator('aside');
+    await expect(sidebar).toBeVisible();
+
+    // 5. Close modal (Escape)
     await page.keyboard.press('Escape');
 
     // Wait for modal to close
     await expect(inspector).not.toBeVisible({ timeout: 3000 });
-
-    // 5. Card should be back to normal (no tilt when not hovered)
-    await page.mouse.move(0, 0); // Move mouse away
-    await page.waitForTimeout(400);
-
-    const transformAfter = await firstCard.evaluate(el => el.style.transform);
-    expect(transformAfter).toContain('scale3d(1, 1, 1)');
   });
 });

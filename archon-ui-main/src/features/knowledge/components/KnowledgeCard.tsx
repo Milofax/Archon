@@ -7,8 +7,6 @@
 import { format } from "date-fns";
 import { Clock, Code, ExternalLink, File, FileText, Globe } from "lucide-react";
 import { isOptimistic } from "@/features/shared/utils/optimistic";
-import { useCardTilt } from "@/hooks/useCardTilt";
-import "@/styles/card-animations.css";
 import { KnowledgeCardProgress } from "../../progress/components/KnowledgeCardProgress";
 import type { ActiveOperation } from "../../progress/types";
 import { StatPill } from "../../ui/primitives";
@@ -45,9 +43,6 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
 }) => {
   const deleteMutation = useDeleteKnowledgeItem();
   const refreshMutation = useRefreshKnowledgeItem();
-
-  // 3D tilt effect
-  const { cardRef, tiltStyles, handlers: tiltHandlers } = useCardTilt();
 
   // Check if item is optimistic
   const optimistic = isOptimistic(item);
@@ -108,21 +103,10 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
   return (
     // biome-ignore lint/a11y/useSemanticElements: Card contains nested interactive elements (buttons, links) - using div to avoid invalid HTML nesting
     <div
-      ref={cardRef}
-      className={cn("relative group cursor-pointer card-3d", optimistic && "opacity-80")}
+      className={cn("relative group cursor-pointer", optimistic && "opacity-80")}
       role="button"
       tabIndex={0}
-      style={{
-        transform: tiltStyles.transform,
-        transition: tiltStyles.transition,
-      }}
-      onMouseMove={tiltHandlers.onMouseMove}
-      onMouseEnter={tiltHandlers.onMouseEnter}
-      onMouseLeave={tiltHandlers.onMouseLeave}
-      onClick={() => {
-        tiltHandlers.onClick();
-        onViewDocument();
-      }}
+      onClick={() => onViewDocument()}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -130,15 +114,6 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
         }
       }}
     >
-      {/* Reflection overlay for 3D effect */}
-      <div
-        className="card-reflection rounded-xl"
-        style={{
-          opacity: tiltStyles.reflectionOpacity,
-          backgroundPosition: tiltStyles.reflectionPosition,
-        }}
-      />
-
       <DataCard
         edgePosition="top"
         edgeColor={getEdgeColor()}
