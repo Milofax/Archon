@@ -5,10 +5,10 @@
  */
 
 import { format } from "date-fns";
-import { motion } from "framer-motion";
 import { Clock, Code, ExternalLink, File, FileText, Globe } from "lucide-react";
-import { useState } from "react";
 import { isOptimistic } from "@/features/shared/utils/optimistic";
+import { useCardTilt } from "@/hooks/useCardTilt";
+import "@/styles/card-animations.css";
 import { KnowledgeCardProgress } from "../../progress/components/KnowledgeCardProgress";
 import type { ActiveOperation } from "../../progress/types";
 import { StatPill } from "../../ui/primitives";
@@ -43,9 +43,11 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
   activeOperation,
   onRefreshStarted,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const deleteMutation = useDeleteKnowledgeItem();
   const refreshMutation = useRefreshKnowledgeItem();
+
+  // 3D tilt effect
+  const { cardRef, tiltStyles, handlers: tiltHandlers } = useCardTilt();
 
   // Check if item is optimistic
   const optimistic = isOptimistic(item);
@@ -58,7 +60,7 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
   // const isFile = item.metadata?.source_type === "file" || item.url?.startsWith('file://'); // Currently unused
   // Check both top-level and metadata for knowledge_type (for compatibility)
   const isTechnical = item.knowledge_type === "technical" || item.metadata?.knowledge_type === "technical";
-  const isProcessing = item.status === "processing";
+  // const isProcessing = item.status === "processing"; // Currently unused
   const hasError = item.status === "error";
   const codeExamplesCount = item.code_examples_count || item.metadata?.code_examples_count || 0;
   const documentCount = item.document_count || item.metadata?.document_count || 0;
@@ -105,29 +107,45 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: Card contains nested interactive elements (buttons, links) - using div to avoid invalid HTML nesting
-    <motion.div
-      className={cn("relative group cursor-pointer", optimistic && "opacity-80")}
+    <div
+      ref={cardRef}
+      className={cn("relative group cursor-pointer card-3d", optimistic && "opacity-80")}
       role="button"
       tabIndex={0}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onViewDocument}
+      style={{
+        transform: tiltStyles.transform,
+        transition: tiltStyles.transition,
+      }}
+      onMouseMove={tiltHandlers.onMouseMove}
+      onMouseEnter={tiltHandlers.onMouseEnter}
+      onMouseLeave={tiltHandlers.onMouseLeave}
+      onClick={() => {
+        tiltHandlers.onClick();
+        onViewDocument();
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onViewDocument();
         }
       }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
     >
+      {/* Reflection overlay for 3D effect */}
+      <div
+        className="card-reflection rounded-xl"
+        style={{
+          opacity: tiltStyles.reflectionOpacity,
+          backgroundPosition: tiltStyles.reflectionPosition,
+        }}
+      />
+
       <DataCard
         edgePosition="top"
         edgeColor={getEdgeColor()}
         blur="md"
         className={cn(
           "transition-shadow",
-          isHovered && "shadow-[0_0_30px_rgba(6,182,212,0.2)]",
+          "group-hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]",
           optimistic && "ring-1 ring-cyan-400/30",
         )}
       >
@@ -289,6 +307,6 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
           </div>
         </DataCardFooter>
       </DataCard>
-    </motion.div>
+    </div>
   );
 };

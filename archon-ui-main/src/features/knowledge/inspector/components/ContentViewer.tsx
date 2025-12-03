@@ -8,6 +8,7 @@ import Prism from "prismjs";
 import ReactMarkdown from "react-markdown";
 import { Button } from "../../../ui/primitives";
 import type { InspectorSelectedItem } from "../../types";
+import { MermaidRenderer } from "@/components/content/MermaidRenderer";
 
 // Import Prism theme and languages
 import "prismjs/themes/prism-tomorrow.css";
@@ -170,7 +171,33 @@ export const ContentViewer: React.FC<ContentViewerProps> = ({ selectedItem, onCo
                 ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-1">{children}</ul>,
                 ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-1">{children}</ol>,
                 li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                code: ({ children }) => <code className="px-1.5 py-0.5 rounded bg-black/30">{children}</code>,
+                code: ({ className, children, ...props }) => {
+                  const match = /language-(\w+)/.exec(className || "");
+                  const language = match ? match[1] : "";
+
+                  // Render mermaid diagrams
+                  if (language === "mermaid" && typeof children === "string") {
+                    return <MermaidRenderer chart={children} />;
+                  }
+
+                  // Inline code (no language class)
+                  if (!className) {
+                    return <code className="px-1.5 py-0.5 rounded bg-black/30" {...props}>{children}</code>;
+                  }
+
+                  // Code block with syntax highlighting
+                  const code = String(children).replace(/\n$/, "");
+                  return (
+                    <pre className="bg-black/30 border border-white/10 rounded-lg p-4 overflow-x-auto">
+                      <code
+                        className={`language-${language} font-mono text-sm`}
+                        dangerouslySetInnerHTML={{
+                          __html: highlightCode(code, language),
+                        }}
+                      />
+                    </pre>
+                  );
+                },
               }}
             >
               {stripOuterBackticks(selectedItem.content || "No content available")}
