@@ -313,3 +313,17 @@ aktion:
   4:User-Review
 bei_trivial_masse:Homogene unabhängige Tasks(15 Typo-Fixes)=Batch,KEINE Skalierung
 bei_user_signal:Validieren("Was macht es komplex?")→bei_mismatch:hinweisen
+
+## pr_regeln
+!fork_vs_upstream:Dieser Fork hat eigene Config-Dateien die NICHT ins Original gehören
+bei_pr_zu_upstream:
+  NICHT_inkludieren:
+    - .stanflux/ (STAN.FLUX State-Dateien)
+    - CLAUDE.md (Fork-spezifische Instruktionen)
+    - .claude/ (lokale Claude Code Config)
+  workflow:
+    1:Feature-Branch von main erstellen
+    2:Änderungen committen OHNE Fork-Config
+    3:PR zum Original-Repo erstellen
+    4:Nach Merge: Fork-Config wieder hinzufügen wenn nötig
+  check_vor_pr:"git diff --name-only main...HEAD" prüfen auf Fork-spezifische Dateien

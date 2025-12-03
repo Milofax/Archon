@@ -1,0 +1,239 @@
+#PITH:1.1
+#CHECKLISTS
+#z:Validierungs-Checklisten für Artefakte
+
+# SOFTWARE
+
+prd:
+  desc:Produkt-Anforderungen
+  req:
+    ·executive_summary→Was ist das Produkt und warum wichtig?
+    ·problem_statement→Welches Problem lösen wir?
+    ·target_users→Wer sind primäre/sekundäre Nutzer?
+    ·success_criteria→Wie messen wir Erfolg?
+    ·mvp_scope→Was ist in v1? Was explizit nicht?
+    ·functional_requirements→Was muss das System TUN?
+    ·non_functional_requirements→Performance/Security/Skalierbarkeit
+    ·risks_and_assumptions→Was kann schiefgehen? Was nehmen wir an?
+  opt:
+    ·competitive_analysis→Wie schneiden Alternativen ab?
+    ·domain_considerations→Branchenspezifische Anforderungen
+    ·ux_principles→Zentrale Interaktionsmuster
+    ·api_specification→Endpoint-Verträge falls API-Projekt
+    ·timeline_constraints→Harte Deadlines falls vorhanden
+    ·business_metrics→Revenue/Kosten/Wachstumsziele
+
+architecture:
+  desc:Technische Architektur
+  req:
+    ·executive_summary→High-Level Architektur-Überblick
+    ·decision_summary→Schlüsselentscheidungen mit Begründung
+    ·technology_stack→Sprachen/Frameworks/Services mit Versionen
+    ·project_structure→Verzeichnislayout und Organisation
+    ·data_architecture→Modelle/Beziehungen/Speicherung
+    ·api_contracts→Endpoints/Payloads/Auth
+    ·security_architecture→Auth/Verschlüsselung/Zugangskontrolle
+    ·deployment_architecture→Environments/CI-CD/Infrastruktur
+    ·implementation_patterns→Code-Patterns für Konsistenz
+    ·consistency_rules→Naming/Organisation/Error Handling
+  opt:
+    ·performance_considerations→Caching/Optimierungsstrategien
+    ·epic_mapping→Welche Epics berühren welche Komponenten
+    ·adr_records→Formelle Architecture Decision Records
+    ·development_setup→Lokale Entwicklungsumgebung
+    ·novel_patterns→Custom Patterns die Doku brauchen
+
+tech_spec:
+  desc:Tech Spec für kleine Changes
+  req:
+    ·problem_statement→Was ändern wir und warum?
+    ·solution_overview→Wie lösen wir es?
+    ·scope→Was ist in/out of scope?
+    ·implementation_approach→Technischer Ansatz
+    ·files_to_modify→Welche Dateien ändern sich?
+    ·testing_strategy→Wie testen wir das?
+    ·acceptance_criteria→Woran erkennen wir fertig?
+  opt:
+    ·existing_patterns→Patterns aus Codebase folgen
+    ·integration_points→Welche Systeme berührt das?
+    ·rollback_plan→Wie rückgängig machen?
+    ·configuration_changes→Env vars/Config files
+    ·documentation_updates→Welche Docs aktualisieren?
+
+user_story:
+  desc:Einzelne implementierbare Story
+  req:
+    ·user_story_format→Als X will ich Y damit Z
+    ·acceptance_criteria→Given/When/Then Format
+    ·tasks→Breakdown der Implementierungsschritte
+    ·technical_summary→Wie wird das implementiert?
+    ·files_to_modify→Konkrete Dateien die sich ändern
+    ·test_locations→Wo leben die Tests?
+  opt:
+    ·story_points→Aufwandsschätzung
+    ·dependencies→Voraussetzungen/Blocker
+    ·code_references→Existierender Code als Referenz
+    ·architecture_refs→Relevante Architektur-Abschnitte
+
+epic_breakdown:
+  desc:PRD in Epics und Stories aufbrechen
+  req:
+    ·epics_summary→Überblick aller Epics
+    ·fr_inventory→Alle Functional Requirements gelistet
+    ·fr_coverage_map→Welches FR mapped zu welcher Story
+    ·epic_definitions→Jedes Epic mit Ziel und Stories
+    ·story_outlines→Jede Story mit AC und Voraussetzungen
+  opt:
+    ·dependency_graph→Welche Stories hängen voneinander ab
+    ·milestone_mapping→Welche Epics bilden welche Meilensteine
+
+test_design:
+  desc:Test-Strategie und Szenario-Design
+  req:
+    ·test_scope→Was wird getestet?
+    ·test_levels→Unit/Integration/E2E Breakdown
+    ·test_scenarios→Konkrete Szenarien mit erwarteten Ergebnissen
+    ·coverage_targets→Welche % Coverage erforderlich?
+    ·test_data→Welche Testdaten werden benötigt?
+    ·environment→Testumgebungs-Anforderungen
+  opt:
+    ·risk_based_priority→Welche Tests sind kritischsten?
+    ·automation_approach→Was wird automatisiert?
+    ·performance_tests→Load/Stress Test Ansatz
+    ·accessibility_tests→A11y Testing Ansatz
+
+project_documentation:
+  desc:Bestehende Codebase dokumentieren
+  req:
+    ·project_overview→Was macht dieses Projekt?
+    ·technology_stack→Sprachen/Frameworks/Dependencies
+    ·architecture_summary→Wie ist es strukturiert?
+    ·key_components→Hauptmodule und ihr Zweck
+    ·data_flow→Wie fließen Daten durch das System?
+    ·development_setup→Wie lokal ausführen?
+  opt:
+    ·source_tree→Verzeichnisstruktur erklärt
+    ·api_documentation→Endpoint-Dokumentation
+    ·database_schema→Tabellen/Beziehungen
+    ·deployment_process→Wie kommt es in Produktion?
+    ·known_issues→Technical Debt/Gotchas
+
+product_brief:
+  desc:Initiale Vision vor vollem PRD
+  req:
+    ·problem_statement→Welches Problem existiert?
+    ·proposed_solution→High-Level Lösungsidee
+    ·target_users→Wer profitiert?
+    ·core_features→3-5 Kernfeatures
+    ·success_definition→Wie sieht Erfolg aus?
+  opt:
+    ·market_context→Wettbewerb/Opportunity
+    ·constraints→Budget/Zeit/Tech Limitierungen
+    ·risks→Was könnte schiefgehen?
+    ·next_steps→Was wird benötigt um fortzufahren?
+
+brainstorm:
+  desc:Strukturierter Brainstorming-Output
+  req:
+    ·session_topic→Worüber haben wir gebrainstormt
+    ·ideas_generated→Alle Ideen erfasst
+    ·key_themes→Patterns die aufkamen
+    ·priority_ideas→Top 3 Ideen zum Weiterverfolgen
+  opt:
+    ·techniques_used→Welche Brainstorm-Methoden
+    ·action_items→Konkrete nächste Schritte
+    ·questions_emerged→Neue Fragen zum Erkunden
+
+code_review:
+  desc:Strukturierte Code Review Findings
+  req:
+    ·scope_reviewed→Welcher Code wurde reviewed?
+    ·critical_issues→Muss vor Merge gefixt werden
+    ·improvements→Sollte gefixt werden aber nicht blockierend
+    ·verdict→Approve/Request Changes/Reject
+  opt:
+    ·security_concerns→Security-spezifische Findings
+    ·performance_concerns→Performance-spezifische Findings
+    ·positive_highlights→Was war gut gemacht
+
+# NICHT-SOFTWARE
+
+email:
+  desc:Professionelle Geschäfts-E-Mail
+  req:
+    ·betreff→Präzise und aussagekräftig
+    ·anrede→Passend zum Empfänger und Kontext
+    ·kernbotschaft→Was ist das Hauptanliegen?
+    ·call_to_action→Was soll der Empfänger tun?
+    ·grussformel→Angemessen zum Ton
+  opt:
+    ·kontext→Hintergrund falls nötig
+    ·deadline→Zeitliche Erwartung falls relevant
+    ·anhänge_hinweis→Verweis auf Attachments
+    ·cc_bcc_strategie→Wer muss/soll informiert werden
+
+brief:
+  desc:Formeller Geschäftsbrief
+  req:
+    ·absender→Vollständige Absenderangaben
+    ·empfänger→Vollständige Empfängerangaben
+    ·datum→Datum des Schreibens
+    ·betreff→Präzise Betreffzeile
+    ·hauptteil→Strukturierter Inhalt
+    ·unterschrift→Name und ggf. Position
+  opt:
+    ·referenz→Aktenzeichen/Vorgangsnummer
+    ·anlagen→Liste der Anlagen
+    ·verteiler→Kopie an weitere Empfänger
+    ·rechtliche_hinweise→Disclaimer falls nötig
+
+präsentation:
+  desc:Folien für Vortrag oder Pitch
+  req:
+    ·kernaussage→Was soll hängen bleiben?
+    ·zielgruppe→Wer sitzt im Publikum?
+    ·struktur→Roter Faden der Präsentation
+    ·opener→Aufmerksamkeit gewinnen
+    ·hauptpunkte→3-5 zentrale Aussagen
+    ·call_to_action→Was soll das Publikum tun/denken?
+  opt:
+    ·zeitrahmen→Wie lange ist verfügbar?
+    ·visualisierungen→Welche Grafiken/Bilder?
+    ·interaktionspunkte→Wo Publikum einbinden?
+    ·handout→Begleitmaterial
+    ·q_and_a_vorbereitung→Erwartete Fragen
+
+schulung:
+  desc:Lernmaterial und Schulungsunterlagen
+  req:
+    ·lernziele→Was soll der Lernende können/wissen?
+    ·zielgruppe→Vorkenntnisse und Kontext
+    ·gliederung→Aufbau des Materials
+    ·kernkonzepte→Zentrale Begriffe und Ideen
+    ·beispiele→Praxisnahe Veranschaulichungen
+    ·übungen→Praktische Anwendung
+    ·zusammenfassung→Key Takeaways
+  opt:
+    ·voraussetzungen→Was muss man vorher wissen?
+    ·zeitaufwand→Geschätzte Lernzeit
+    ·vertiefung→Weiterführende Ressourcen
+    ·selbsttest→Fragen zur Wissensüberprüfung
+    ·glossar→Begriffserklärungen
+
+konzept:
+  desc:Konzeptpapier oder Projektvorschlag
+  req:
+    ·ausgangslage→Was ist der aktuelle Stand/das Problem?
+    ·zielsetzung→Was soll erreicht werden?
+    ·lösungsansatz→Wie soll es erreicht werden?
+    ·umsetzung→Konkrete Schritte
+    ·ressourcen→Was wird benötigt?
+    ·erwartetes_ergebnis→Was kommt am Ende raus?
+  opt:
+    ·alternativen→Andere mögliche Ansätze
+    ·risiken→Was könnte schiefgehen?
+    ·kosten_nutzen→Aufwand vs. Ertrag
+    ·zeitplan→Meilensteine
+    ·entscheidungsbedarf→Was muss geklärt werden?
+
+# PROJEKTSPEZIFISCH (wird durch Ad-hoc Checklisten erweitert)

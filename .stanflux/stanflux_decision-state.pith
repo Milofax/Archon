@@ -1,0 +1,171 @@
+#PITH:1.2
+#STATE
+projekt:name→Archon|phase→development|type→brownfield
+decisions:
+  [2025-12-01]:Lokale Dateien NIE in PRs→CLAUDE.md,.flux/,.claude/ sind LOKAL und gehören nicht in PRs/Commits|why:FLUX-State und lokale Einstellungen sind User-spezifisch,nicht Teil des Projekts
+  [2025-12-01]:Upstream Merge Workflow→git fetch upstream && git merge upstream/main && Konflikte lösen && feature branch rebasen|why:OpenRouter Embeddings von Upstream integriert,kein Konflikt mit Ollama Auth-Token
+  [2025-12-01]:Ollama Auth-Token Bug Fix→Auth-Token Parameter zu validate_provider_instance() und /validate Endpunkt hinzufügen|why:Token wurde bei Validation ignoriert,Server gab 404 zurück
+  [2025-12-01]:Lokale Testumgebung→Supabase in separatem Verzeichnis(/Volumes/DATEN/Coding/supabase-archon-test),Archon bleibt PR-ready|why:Fix testen ohne Produktions-Infrastruktur
+  [2025-12-01]:Docker Desktop statt Colima→Colima hatte Mount-Probleme mit Supabase CLI|why:mkdir docker.sock operation not supported
+  [2025-12-01]:Lokale .env erstellt→SUPABASE_URL=http://host.docker.internal:54321 mit Standard-JWT|why:Docker-Container brauchen host.docker.internal statt 127.0.0.1
+  [2025-12-01]:JWT Service Role Key→Standard supabase-demo JWT statt sb_secret_ Format|why:Python Supabase Library erwartet JWT-Token
+  [2025-12-01]:Tests für Auth-Token Flow→test_ollama_auth_token.py mit 3 Testklassen|why:Verifikation der Auth-Token Weitergabe durch alle Layer
+  [2025-12-01]:Selected Model Summary Fix→getDisplayedChatModel()/getDisplayedEmbeddingModel() in Summary nutzen|why:ragSettings.CHAT_MODEL war undefined,MODEL_CHOICE ist der richtige Key
+  [2025-12-01]:PDF Enhancement Feature→4 Phasen|Phase1:PyMuPDF4LLM für Text-PDFs(Markdown)|Phase2:Tesseract OCR(Basis)+Optional VLM(Ollama/OpenAI)|Phase3:Testing+Plattform-Kompatibilität|Phase4:RAG Code Quality|why:RAG-Daten müssen perfekt sein,Code muss Best Practices folgen
+  [2025-12-01]:Tesseract statt PaddleOCR→Recherche ergab:Tesseract schneller(0.56s),100% accuracy,bessere Cross-Platform-Unterstützung|why:PaddleOCR war ursprünglicher Plan,aber Tesseract objektiv besser für unseren Use Case
+  [2025-12-01]:Plan-Archivierung→flux_plan_pdf_enhancement.md.archived|why:State+Todos=Source of Truth,Doku kann später per Reverse Engineering generiert werden
+  [2025-12-01]:OCR immer aktiviert→Kein UI nötig,automatischer Fallback wenn Text-Extraktion leer|why:User-Mehrwert bei Status-Anzeige=0,OCR soll einfach funktionieren
+  [2025-12-01]:Tests NUR in offizieller Projektstruktur→python/tests/ mit pytest|why:Ad-hoc Tests (test-pdf/) werden nicht in CI ausgeführt,nicht Teil des Projekts
+  [2025-12-02]:Archon Migrations-Konzept→complete_setup.sql=Source of Truth für Neuinstallationen|0.1.0/*.sql=Upgrade-Migrationen|NEUE Migration MUSS Struktur aus complete_setup.sql kopieren,nicht neu erfinden|why:Migration 012 war inkonsistent (falscher Spaltenname,fehlendes match_type,andere Parameter-Reihenfolge)
+  [2025-12-02]:SQL Funktionen Parameter-Reihenfolge→MUSS identisch zu complete_setup.sql sein|PostgREST kann nicht zwischen Funktionen mit gleichem Namen disambiguieren|why:Fehler PGRST203 "Could not choose best candidate function"
+  [2025-12-02]:PostgREST Cache→Nach SQL-Funktionsänderungen:docker restart supabase_rest_supabase-archon-test|why:Funktionen werden gecacht,neue Signaturen erst nach Restart sichtbar
+  [2025-12-02]:E2E Test Routes→Knowledge Base ist auf / (Root),NICHT /knowledge|why:Tests navigierten zu /knowledge und fanden leere Seite
+  [2025-12-02]:ES Module in Playwright Tests→__dirname existiert nicht|Fix:import { fileURLToPath } from "url"; const __dirname = path.dirname(fileURLToPath(import.meta.url))|why:Playwright Tests sind ES Modules
+  [2025-12-02]:UI Fehlermeldungen→"Local Ollama"→"Ollama service" (remote-kompatibel)|Bei unknown Status "Checking..." anzeigen statt nichts|why:Ollama kann remote sein,Layout-Shift vermeiden
+threads:
+  ✓Ollama Auth-Token Fix:Backend+Frontend Fixes committed auf feature/ollama-support
+  ►PDF Enhancement Feature:Phase1+2 COMPLETE|Phase3 Testing begonnen|Phase4 offen
+  ✓[2025-12-01]:Phase0 Validierung durchgeführt|Ergebnis:pymupdf4llm KLAR BESSER|Metriken:Wortrennung sauber,Markdown-Struktur,947 chars vs 770-828|Nachteil:7x langsamer aber akzeptabel für Batch
+knowledge:patterns→TanStack Query v5,Vertical Slice Architecture,Service Layer Pattern|conventions→API uses RESTful routes,Feature owns query keys,STALE_TIMES constants|pitfalls→No manual ETag tracking,No prop drilling,Ollama Auth-Token muss an alle Discovery/Health-Funktionen übergeben werden,"Use same host" Checkbox muss ALLE Settings kopieren,Summary-Anzeige muss getDisplayed*Model() nutzen statt direkte ragSettings Zugriffe
+
+archon_rag_features:
+  status:BEREITS IMPLEMENTIERT - NICHT VERGESSEN!
+  features:
+    - ✅Hybrid Search:Vector+Keyword kombiniert|python/src/server/services/rag/hybrid_search_strategy.py
+    - ✅Contextual Embeddings:Kontext-angereicherte Embeddings|python/src/server/services/contextual_embedding_service.py
+    - ✅Cross-Encoder Reranking:Re-Ranking der Suchergebnisse|python/src/server/services/rag/reranking_service.py
+    - ✅Agentic RAG:Code-Extraktion+Summaries|python/src/server/services/rag/agentic_rag_strategy.py
+  ui_settings:
+    - Use Contextual Embeddings (parallel processing 1-10)
+    - Use Hybrid Search (vector + keyword)
+    - Use Agentic RAG (code extraction)
+    - Use Reranking (cross-encoder)
+  code_summary_model:Aktuell qwen3:32b via Ollama - LANGSAM|Empfehlung:qwen2.5:7b oder qwen2.5:14b für 2-4x Speed
+  optimierung_potential:
+    - Code-Summary-Modell auf kleineres wechseln (qwen2.5:7b)
+    - Reranking-Modell evaluieren
+    - Contextual Embedding Parallelisierung tunen
+
+embedding_bug:
+  status:FIXED - Suche unterstützt alle Embedding-Dimensionen + Modell-Filter
+  fix_ansatz:
+    - Dimension aus query_embedding ermitteln: len(query_embedding)
+    - _multi RPC-Funktionen aufrufen mit embedding_dimension Parameter
+    - Keine Settings-Lookups nötig, Dimension kommt automatisch vom Embedding
+  geändert:
+    - base_search_strategy.py: ✓ verwendet {table_rpc}_multi mit embedding_dimension + embedding_model_filter
+    - hybrid_search_strategy.py: ✓ verwendet hybrid_search_*_multi mit embedding_dimension + embedding_model_filter
+    - agentic_rag_strategy.py: ✓ embedding_model_filter durchgereicht
+    - rag_service.py: ✓ get_embedding_model() holt aktuelles Modell + Filter an alle Strategies
+  embedding_model_filter:
+    status:IMPLEMENTED - Backend filtert automatisch nach aktuellem Modell
+    sql_migration:012_add_embedding_model_filter.sql + complete_setup.sql aktualisiert
+    backend:get_embedding_model() wird bei jeder Suche aufgerufen und an RPC übergeben
+    frontend_offen:
+      - Warning Dialog bei Embedding-Modell-Wechsel
+      - Re-embed Funktionalität nach Modell-Wechsel
+pdf_extraction:
+  pymupdf4llm:
+    code_blocks→VALIDIERT:erkennt mono-spaced Text und formatiert als ``` Markdown
+    headings→#-Tags basierend auf Font-Größe
+    tables→GitHub-Markdown Format
+    test_file→test-pdf/Coding.pdf Seite 56 hat 8 Code-Blöcke
+  smart_chunk_text:
+    v1→erkannte nur ``` und \n\n
+    v2→JETZT:Headings (#) als Priorität 1,Code-Blöcke als No-Break-Zone
+    logik→is_inside_code_block() prüft ungerade ``` Anzahl vor Position
+    priorität→1:Heading(\n#) 2:Paragraph(\n\n) 3:Satz(. ) - alle nur außerhalb Code-Blöcke
+  ocr_tesseract:
+    output→NUR Plain Text (KEIN Markdown!)
+    folge→Heading-Chunking und Code-Block-Schutz funktionieren NICHT bei OCR-Text
+    fallback→Paragraph(\n\n) und Satz(. ) greifen - ist OK für gescannte Fließtext-Dokumente
+    test_file→test-pdf/OCR-Test.pdf - 100% Accuracy, 0.56s
+    optional_enhancement→VLM (GPT-4o/Claude/Ollama Vision) könnte Markdown generieren
+understanding:Knowledge management system with AI capabilities,React+FastAPI,Supabase backend
+
+dev_environment:
+  supabase:
+    pfad:/Volumes/DATEN/Coding/supabase-archon-test
+    start:cd /Volumes/DATEN/Coding/supabase-archon-test && supabase start
+    api:http://127.0.0.1:54321
+    studio:http://127.0.0.1:54323
+
+  .env_config:
+    pfad:/Volumes/DATEN/Coding/Archon/.env
+    SUPABASE_URL:http://host.docker.internal:54321
+    SUPABASE_SERVICE_KEY:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    !wichtig:host.docker.internal statt 127.0.0.1 weil Docker-Container sonst Host nicht erreichen
+
+  startup_full_docker:
+    1:cd /Volumes/DATEN/Coding/supabase-archon-test && supabase start
+    2:cd /Volumes/DATEN/Coding/Archon && docker compose --profile backend up -d
+    3:Warte bis healthy→http://localhost:3737 öffnen
+
+  startup_hybrid(frontend lokal):
+    1:cd /Volumes/DATEN/Coding/supabase-archon-test && supabase start
+    2:cd /Volumes/DATEN/Coding/Archon && docker compose --profile backend up -d
+    3:cd /Volumes/DATEN/Coding/Archon/archon-ui-main && npm run dev
+
+  troubleshooting:
+    server_unhealthy:Supabase nicht gestartet ODER .env hat 127.0.0.1 statt host.docker.internal
+    connection_refused:docker compose down && docker compose --profile backend up -d (Container neu erstellen)
+    check_logs:docker compose logs archon-server --tail 50
+    docker_nicht_gestartet:Docker Desktop startet NICHT automatisch beim Login→manuell öffnen
+
+[2025-12-03]:Unified Progress UI Feature→PDF Upload bekommt gleiches "Kino" wie Web Crawl|why:Große PDFs (300+ Seiten, 100k+ Wörter) verdienen gleichen Feedback wie große Crawls
+  [2025-12-03]:Page-Progress via page_chunks=True→pymupdf4llm.to_markdown(page_chunks=True) gibt Liste pro Seite zurück|why:Ermöglicht echten Page-by-page Progress ohne Library-Fork
+  [2025-12-03]:OCR-Progress hinzufügen→Tesseract OCR hat Page-Schleife, kann Progress emittieren|why:Gescannte PDFs können lange dauern, User braucht Feedback
+  [2025-12-03]:Kein großes Refactoring→Bestehende Struktur erweitern statt neuen DocumentProcessingService|why:Pragmatisch, Ziel ist UX-Verbesserung nicht Architektur-Redesign
+  [2025-12-03]:Quick Wins zuerst→Phase 3+4 (Embedding/Code-Blocks) sind fast gratis, Phase 1+2 echter Aufwand|why:Frontend zeigt bereits code_blocks_found, Backend sendet es nur nicht für Uploads
+
+aktueller_stand:
+  ollama_pr:
+    status:PR #875 offen auf coleam00/Archon
+    url:https://github.com/coleam00/Archon/pull/875
+    branch:feature/ollama-support
+    letzter_push:2025-12-01 (CodeRabbit fixes + unused imports cleanup)
+    nächster_schritt:Warten auf Review/Merge
+  pdf_enhancement:
+    status:Phase5 COMPLETE (Code Extraction Refactoring) + 775 Tests PASSED
+    branch:feature/pdf-enhancement auf Milofax/Archon
+    pr:PR #1 auf Milofax/Archon (nicht gepusht)
+    phase5_code_extraction_refactoring:
+      status:COMPLETE
+      änderungen:
+        - ✓Unified markdown extraction für alle Quellen (Web/PDF/MD)
+        - ✓Gelöscht: ~1125 Zeilen deprecated Code (HTML/PDF/Text Extraction)
+        - ✓Gelöscht: _extract_html_code_blocks, _extract_pdf_code_blocks, _extract_text_file_code_blocks
+        - ✓Gelöscht: _validate_code_quality, _clean_code_content, _decode_html_entities
+        - ✓Gelöscht: _calculate_min_length, _find_complete_code_block, _detect_language_from_content
+        - ✓Simplified: _extract_code_blocks_from_documents (~140→~50 Zeilen)
+        - ✓Fixed: Recursion limit für extract_code_blocks (max 3 levels)
+        - ✓Updated: storage_services.py content_type handling
+      neue_tests:
+        - ✓test_unified_code_extraction.py: 21 Tests (all pass)
+        - ✓TestRecursionLimit: 2 Tests für recursion safety
+      dateien_geändert:
+        - python/src/server/services/crawling/code_extraction_service.py (1702→577 lines, -66%)
+        - python/src/server/services/storage/code_storage_service.py (recursion limit)
+        - python/src/server/services/storage/storage_services.py (simplified content_type)
+        - python/tests/test_unified_code_extraction.py (new)
+    validierung:
+      - pymupdf4llm: Book.pdf 115k Wörter, Coding.pdf 134k Wörter + 786 Code-Blöcke
+      - Tesseract OCR: OCR-Test.pdf 62 Wörter erkannt
+    phase4_komplett:
+      - SQL: embedding_model_filter in allen 4 Such-Funktionen (Migration 012 korrigiert)
+      - Python: Filter durch alle Search-Layers (base, hybrid, agentic, rag_service)
+      - Tests: 9 neue Tests für embedding_model_filter (alle grün)
+      - Warning Dialog bei Embedding-Modell-Wechsel (RAGSettings.tsx)
+      - Re-embed Service + API-Endpoints + Frontend-Button
+      - TypeScript-Fixes in RAGSettings.tsx (unbenutzter Code entfernt, Types gefixt)
+    e2e_tests:
+      - ✓Web-Crawl E2E: URL crawlen → warten → Dokument suchbar
+      - ✓PDF Upload E2E: PDF hochladen → warten → Inhalt suchbar
+      - ✓RAG Search E2E: Nach bekanntem Inhalt suchen → Ergebnisse validieren
+      - ✓Re-embed E2E: Re-embed starten → warten → Suche funktioniert weiterhin
+      - ✓Mixed Content E2E: Crawled + Uploaded Content in Suche
+      - ✓RAG Search UI E2E: Suche über UI funktioniert
+    ui_fixes:
+      - Fehlermeldung "Local Ollama" → "Ollama service" (remote-kompatibel)
+      - "Checking..." Status bei unknown (verhindert Layout-Shift)
+    nächster_schritt:E2E Tests laufen lassen + Commit erstellen

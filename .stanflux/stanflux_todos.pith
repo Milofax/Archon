@@ -1,0 +1,194 @@
+#PITH:1.2
+#TODOS
+unified-progress-ui:
+  #Ziel:Gleiches "Kino" für Web Crawl + PDF Upload
+  #Kriterium:PDF zeigt Live-Stats (Pages,Chunks,Code Blocks) im großen Panel wie Web Crawl
+  #Entscheidungen:
+    - page_chunks=True für Page-Progress (keine Library-Änderung nötig)
+    - OCR-Progress auch hinzufügen (Tesseract hat Page-Schleife)
+    - Quick Wins zuerst (Phase 3+4 fast gratis)
+    - Kein Refactoring, bestehende Struktur erweitern
+
+  ##Analyse ✓COMPLETE
+  ✓Perspektiv-Analyse durchgeführt (6/6)
+  ✓pymupdf4llm.to_markdown(page_chunks=True) ermöglicht Page-Progress
+  ✓OCR extract_text_with_ocr() hat Page-Schleife
+  ✓Cancel-Support bereits vorhanden (cancellation_check)
+  ✓DocumentStorageService emittiert batch-info (Frontend nutzt es nicht)
+  ✓CrawlingProgress.tsx zeigt code_blocks_found (Backend sendet es nicht für Upload)
+
+  ##Phase 1 (Quick Win):Frontend code_blocks anzeigen ✓DONE
+  ✓CrawlingProgress.tsx:code_blocks_found auch für Upload-Typ anzeigen
+  ✓Backend:code_examples_stored→code_blocks_found gemapped in progress_api.py
+
+  ##Phase 2 (Quick Win):Embedding-Batch-Progress durchreichen ✓DONE
+  ✓progress_api.py:chunks_stored,current_batch,total_batches für Uploads gemapped
+  ✓CrawlingProgress.tsx:Batch-Progress + dynamic Stats-Grid für Upload-Typ
+  ✓progress/types/progress.ts:Neue Felder hinzugefügt
+
+  ##Phase 3:PDF Page-Progress ✓DONE
+  ✓document_processing.py:extract_text_from_pdf_async() mit page_chunks=True
+  ✓document_processing.py:extract_text_from_document_async() wrapper
+  ✓knowledge_api.py:extraction_progress_callback mit pages_extracted,total_pages
+  ✓progress_mapper.py:text_extraction Range erweitert (2-20%) für bessere Sichtbarkeit
+
+  ##Phase 4:OCR Page-Progress ✓DONE
+  ✓ocr_processing.py:extract_text_with_ocr_async() mit progress_callback
+  ✓Progress pro Seite ("OCR processing page 3/47...")
+
+  ##Phase 5:Chunking-Progress ~SKIP
+  ~Chunks sind schnell - nicht nötig
+
+  ##Phase 6:Code-Extraktion Live-Progress ✓DONE
+  ✓storage_services.py:code_progress_callback erweitert um code_blocks_found
+  ✓code_blocks_found wird live während Extraktion emittiert
+
+  ##Frontend:Stats-Grid finalisieren ✓DONE
+  ✓Web Crawl: Pages Crawled | Documents | Code Blocks
+  ✓PDF Upload: Pages Extracted (oder Batches) | Chunks | Code Blocks
+  ✓CrawlingProgress.tsx:Dynamic Stats-Grid basierend auf operation_type
+
+  ##Test
+  ✓Manueller Test:Großes PDF hochladen, Progress beobachten
+  ✓E2E Test erweitern (optional, nach manuellem Test)
+
+pdf-enhancement:
+  #Phase0:Validierung (ERST beweisen, DANN implementieren)
+  ✓2025-12-01:Phase0 Vergleichstest durchgeführt - pymupdf4llm KLAR BESSER (saubere Wortrennung, Markdown)
+  ✓2025-12-01:Phase0 Metriken: pymupdf4llm 1.25s/947chars vs pdfplumber 0.18s/828chars vs PyPDF2 0.15s/770chars
+
+  #Phase1:Text-PDF Optimierung (Phase0 VALIDIERT: pymupdf4llm ist besser) ✓COMPLETE
+  ✓2025-12-01:Phase1 pyproject.toml - pymupdf4llm>=0.2.5 hinzugefügt
+  ✓2025-12-01:Phase1 document_processing.py - PyMuPDF4LLM als primär, pdfplumber/PyPDF2 als Fallback
+  ✓2025-12-01:Phase1 smart_chunk_text() - commit 8a28b02 - Headings (#) als Priorität, Code-Blöcke geschützt
+
+  #Phase2:OCR für Bild-PDFs ✓COMPLETE
+  ✓Phase2 RECHERCHE: Tesseract > EasyOCR > PaddleOCR (0.56s, 100% accuracy, cross-platform)
+  ✓Phase2 Backend: ocr_processing.py - Tesseract als primäre Engine
+  ✓Phase2 Backend: pyproject.toml - pytesseract + pdf2image Dependencies
+  ✓Phase2 Backend: document_processing.py - OCR Fallback wenn kein Text
+  ✓Phase2 Entscheidung: OCR immer aktiviert (automatischer Fallback), kein UI nötig
+  ~Phase2 VLM Enhancement: Optional Layer für später (Ollama Vision / OpenAI gpt-4o)
+
+  #Phase3:Testing + Qualität ✓COMPLETE
+  ✓Phase3 Offizielle pytest-Tests erstellt in python/tests/server/utils/
+  ✓Phase3 test_document_processing.py: 6 Tests (PDF extraction, chunking)
+  ✓Phase3 test_ocr_processing.py: 6 Tests (OCR availability, extraction)
+  ✓Phase3 Alle 12 Tests PASS (uv run pytest)
+  ✓Phase3 Plattform-Kompatibilität:
+    - Dockerfile.server: tesseract-ocr + poppler-utils hinzugefügt
+    - GitHub Actions: platform-compatibility Job (ubuntu-latest + ubuntu-24.04-arm)
+    - Native Tests auf x86_64 und ARM64 ohne QEMU
+  ✓Phase3 E2E Tests mit Playwright:
+    - playwright.config.ts erstellt
+    - pdf-upload-flow.spec.ts: UI-Tests + Integration-Tests
+    - package.json: test:e2e, test:e2e:ui, test:e2e:headed, test:e2e:debug
+    - Tests skippen automatisch wenn Backend nicht läuft
+  ✓Phase3 E2E Tests validiert (via Playwright MCP):
+    - ✓ Navigation zur Knowledge Base
+    - ✓ Add Knowledge Dialog öffnen
+    - ✓ Upload Tab wählen
+    - ✓ PDF Datei auswählen (OCR-Test.pdf)
+    - ✓ Upload Button klicken
+    - ✓ OCR-Extraktion erfolgreich (62 Wörter, 1 Chunk)
+    - ✓ Dokument in Knowledge Base sichtbar
+    - Voraussetzung: feature/ollama-support + main gemerged (Auth-Token + OCR)
+  ✓Phase3 Manuelle Validierung mit echten PDFs:
+    - Book.pdf (8.4MB): 115k Wörter, Markdown-Formatierung ✓
+    - Coding.pdf (8.8MB): 134k Wörter, 786 Code-Blöcke erkannt ✓
+    - OCR-Test.pdf (70KB): 62 Wörter via Tesseract OCR Fallback ✓
+
+  #Phase4:RAG Code Quality + Embedding-Kompatibilität
+
+  ##BUG-KRITISCH:Suche hardcoded auf 1536-dim ✓FIXED
+  ✓Phase4 BUG-FIX: base_search_strategy.py → match_archon_crawled_pages_multi mit Dimension
+  ✓Phase4 BUG-FIX: hybrid_search_strategy.py → hybrid_search_*_multi mit Dimension
+  ✓Phase4 BUG-FIX: Dimension aus len(query_embedding) ermittelt (automatisch vom Embedding)
+
+  ##Embedding-Modell-Wechsel-Handling
+  ✓Phase4 RECHERCHE: embedding_model wird gespeichert, aber Suche filtert nicht danach
+  ✓Phase4 SQL-Migration: 012_add_embedding_model_filter.sql + complete_setup.sql aktualisiert
+  ✓Phase4 Backend: embedding_model_filter Parameter durch alle Search-Layers (base, hybrid, agentic, rag_service)
+  ✓Phase4 Backend: get_embedding_model() für automatischen Filter bei jeder Suche
+  ✓Phase4 Tests: 9 neue Tests für embedding_model_filter in test_rag_strategies.py (alle grün)
+  ✓Phase4 Frontend: Warning Dialog bei Embedding-Modell-Wechsel
+    - AlertDialog mit Tron-Style aus primitives
+    - Zeigt Warnung bei Provider-Wechsel + Modal-Auswahl (Ollama)
+    - Prüft knowledgeService.getKnowledgeSummaries() auf bestehende Dokumente
+    - Optionen: Cancel / Change Anyway
+  ✓Phase4 E2E Tests: embedding-model-change-warning.spec.ts (7 passed, 1 skipped)
+    - Provider-Wechsel mit Dokumenten → Dialog erscheint
+    - Cancel → Dialog schließt, Modell unverändert
+    - Change Anyway → Dialog schließt, Modell geändert, Toast
+    - Ollama Modal → Warning bei Auswahl
+    - Accessibility: Escape schließt, Overlay schließt NICHT (AlertDialog-Pattern)
+  ✓Phase4 E2E Tests: Re-embed Flow (6 neue Tests, alle grün)
+    ✓Re-embed & Change Button sichtbar neben Cancel/Change Anyway
+    ✓Re-embed & Change → API Call → Toast mit Progress ID
+    ✓Re-embed Button zeigt Loading State (Starting...)
+    ✓Re-embed Stats API gibt valide Statistiken zurück
+    ✓Stop API gibt 404 für nicht-existente Progress ID
+    ✓Navigation zu Knowledge Base nach Re-embed Start funktioniert
+  ✓Phase4 ECHTE E2E Tests (kompletter Flow inkl. Suche) - 6/6 passed
+    ✓Web-Crawl E2E: URL crawlen → warten → Dokument suchbar
+    ✓PDF Upload E2E: PDF hochladen → warten → Inhalt suchbar
+    ✓RAG Search E2E: Nach bekanntem Inhalt suchen → Ergebnisse validieren
+    ✓Re-embed E2E: Re-embed starten → warten → Suche funktioniert weiterhin
+    ✓Mixed Content E2E: Crawled + Uploaded Content in Suche
+    ✓RAG Search UI E2E: Suche über UI funktioniert
+  ✓Phase4 Frontend: Re-embed Funktionalität nach Modell-Wechsel
+    - ✓Backend: re_embed_service.py - Bulk-Re-Embedding Service
+    - ✓Backend: knowledge_api.py - /api/knowledge/re-embed + /stop + /stats Endpoints
+    - ✓Frontend: knowledgeService.ts - startReEmbed(), stopReEmbed(), getReEmbedStats()
+    - ✓Frontend: RAGSettings.tsx - "Re-embed & Change" Button im Warning Dialog
+    - ✓Progress-Tracking via ProgressTracker (operation_type="re_embed")
+
+  ##Code Quality (ursprüngliche Items)
+  ✓Phase4 Bug gefixt: contextual_embedding_service.py:248 - "\\n\\n" → "\n\n"
+  ✓Phase4 Batch-Response-Parsing robuster: JSON-First + Text-Fallback + Markdown-Strip
+  ~Phase4 chunk_size dynamisch basierend auf Embedding-Modell Token-Limit (größeres Feature, benötigt Model-Metadata)
+  ✓Phase4 Token-Schätzung verbessern: character-based (~3-4 chars/token) statt word-based + ruff Fixes
+  ✓Phase4 Credential-Lookup deduplizieren: unbenutzter MODEL_CHOICE-Lookup in generate_contextual_embedding entfernt
+  ✓Phase4 Test-Fix: test_rag_simple.py RPC-Namen auf _multi aktualisiert (18/18 Tests pass)
+  ~Phase4 Unit Tests für RAG-Services schreiben (bereits 18 umfassende Tests vorhanden)
+
+html-entity-fix:
+  #Ziel:Code-Examples lesbar anzeigen (keine &lt;h1&gt; sondern <h1>)
+  #Kriterium:HTML-Entities werden korrekt dekodiert in Knowledge Base UI
+  #Root-Cause:Frontend hat doppelt escaped (manuell + Prism intern)
+  #Lösung:Manuelles Escaping vor Prism entfernt - Prism escaped selbst
+  ✓Phase1:Backend - iteratives html.unescape() bei Code-Extraktion (Absicherung für Zukunft)
+  ✓Phase2:Frontend - Kein manuelles Escaping vor Prism (DER eigentliche Fix!)
+  ✓Tests:6 Tests für HTML-Entity-Dekodierung inkl. double/triple encoded
+  ✓Phase3:Playwright-Test bestätigt: Code zeigt <h1> statt &lt;h1&gt;
+  ✓Phase4:DB-Analyse: Daten waren bereits sauber! Migration nicht nötig
+  ✓Phase5:E2E-Test erstellt (code-examples-display.spec.ts) - verifiziert &lt;/&gt; nicht in Code
+  ✓DONE:2025-12-03
+
+ollama-fix:
+  ✓2025-12-01:PR #875 erstellt für Ollama Auth-Token Fix + Selected Model Fix
+  ~Manueller Test mit echtem Ollama-Server (optional, PR wartet auf Review)
+
+~geparkt:
+  ~UI Settings Verbesserungen:
+    - "Save Settings" Button Position (ganz oben, unübersichtlich)
+    - Modell-Auswahl: Default-Wert anzeigen wenn nichts ausgewählt
+  ~RAG Performance Optimierung:
+    - Code-Summary-Modell: qwen3:32b → qwen2.5:7b (2-4x schneller, ähnliche Qualität)
+    - Reranking-Service evaluieren: Welches Modell? Wie viel Overhead?
+    - Contextual Embedding Parallelisierung: Aktuell 1-10, optimal?
+    - Hybrid Search Gewichtung: Vector vs Keyword Balance tunen
+    - Dateipfade für Review:
+      - python/src/server/services/rag/hybrid_search_strategy.py
+      - python/src/server/services/rag/reranking_service.py
+      - python/src/server/services/rag/agentic_rag_strategy.py
+      - python/src/server/services/contextual_embedding_service.py
+✓done:
+  ✓2025-12-01:FLUX-Block in CLAUDE.md hinzufügen
+  ✓2025-12-01:State-Dateien erstellen
+  ✓2025-12-01:Auth-Token in /validate Endpunkt einbauen
+  ✓2025-12-01:validate_provider_instance() Auth-Token Parameter hinzufügen
+  ✓2025-12-01:Lokale Supabase starten
+  ✓2025-12-01:Archon lokal mit lokaler Supabase starten
+  ✓2025-12-01:Tests für Ollama Auth-Token schreiben (5 Tests, alle grün)
+  ✓2025-12-01:Selected Model Summary Bug fixen (CHAT_MODEL→getDisplayedChatModel())
