@@ -208,6 +208,142 @@ test.describe('Phase 2: Mermaid Diagram Support', () => {
   });
 });
 
+test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('Inspector opens with Summary tab as default', async ({ page }) => {
+    const cards = page.locator('[role="button"].card-3d');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    // Click first card to open inspector
+    await cards.first().click();
+
+    // Wait for inspector modal
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Summary tab should be active (cyan color indicates active)
+    const summaryTab = inspector.locator('button:has-text("Summary")');
+    await expect(summaryTab).toBeVisible();
+    await expect(summaryTab).toHaveClass(/text-cyan-400/);
+  });
+
+  test('Summary tab displays AI-generated summary', async ({ page }) => {
+    const cards = page.locator('[role="button"].card-3d');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Check for summary content area
+    const summarySection = inspector.locator('text=AI-generated overview');
+    await expect(summarySection).toBeVisible({ timeout: 3000 });
+  });
+
+  test('Summary tab has copy button when content exists', async ({ page }) => {
+    const cards = page.locator('[role="button"].card-3d');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Check for copy button (might not be visible if no summary)
+    const copyButton = inspector.locator('button:has-text("Copy")');
+    const noCopyButton = inspector.locator('text=No summary available');
+
+    // Either copy button exists (has summary) or empty state exists
+    const hasCopy = await copyButton.count() > 0;
+    const hasEmptyState = await noCopyButton.count() > 0;
+
+    expect(hasCopy || hasEmptyState).toBe(true);
+  });
+
+  test('Can switch between Summary, Documents, and Code tabs', async ({ page }) => {
+    const cards = page.locator('[role="button"].card-3d');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Click Documents tab
+    const documentsTab = inspector.locator('button:has-text("Documents")');
+    await documentsTab.click();
+    await expect(documentsTab).toHaveClass(/text-cyan-400/);
+
+    // Sidebar should be visible in Documents mode
+    const sidebar = inspector.locator('aside');
+    await expect(sidebar).toBeVisible();
+
+    // Click Code Examples tab
+    const codeTab = inspector.locator('button:has-text("Code Examples")');
+    await codeTab.click();
+    await expect(codeTab).toHaveClass(/text-cyan-400/);
+
+    // Click back to Summary
+    const summaryTab = inspector.locator('button:has-text("Summary")');
+    await summaryTab.click();
+    await expect(summaryTab).toHaveClass(/text-cyan-400/);
+
+    // Sidebar should be hidden in Summary mode
+    await expect(sidebar).not.toBeVisible();
+  });
+
+  test('Summary view shows character count when content exists', async ({ page }) => {
+    const cards = page.locator('[role="button"].card-3d');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Check for character count (only visible if summary exists)
+    const charCount = inspector.locator('text=/\\d+ characters/');
+    const noCopyButton = inspector.locator('text=No summary available');
+
+    const hasCharCount = await charCount.count() > 0;
+    const hasEmptyState = await noCopyButton.count() > 0;
+
+    // Either shows char count or empty state
+    expect(hasCharCount || hasEmptyState).toBe(true);
+  });
+});
+
 test.describe('Integration: Card Interaction Flow', () => {
 
   test('Full interaction flow: hover -> click -> view content -> close', async ({ page }) => {
