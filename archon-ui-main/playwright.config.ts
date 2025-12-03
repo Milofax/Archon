@@ -25,7 +25,10 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   // Reporter to use
-  reporter: 'html',
+  reporter: [
+    ['html', { open: 'never' }],
+    ['list'],
+  ],
 
   // Shared settings for all the projects below
   use: {
@@ -51,6 +54,15 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // Uncomment for cross-browser testing
+    // {
+    //   name: "firefox",
+    //   use: { ...devices["Desktop Firefox"] },
+    // },
+    // {
+    //   name: "webkit",
+    //   use: { ...devices["Desktop Safari"] },
+    // },
   ],
 
   // Timeout for each test

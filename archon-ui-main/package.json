@@ -28,6 +28,8 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed",
+    "test:e2e:debug": "npx playwright test --debug",
+    "playwright:install": "npx playwright install chromium",
     "seed:projects": "node --loader ts-node/esm ../scripts/seed-project-data.ts"
   },
   "dependencies": {

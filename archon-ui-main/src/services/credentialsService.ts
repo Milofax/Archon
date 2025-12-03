@@ -25,6 +25,8 @@ export interface RagSettings {
   OLLAMA_EMBEDDING_URL?: string;
   OLLAMA_EMBEDDING_INSTANCE_NAME?: string;
   OLLAMA_API_MODE?: string;
+  OLLAMA_CHAT_AUTH_TOKEN?: string;
+  OLLAMA_EMBEDDING_AUTH_TOKEN?: string;
   EMBEDDING_MODEL?: string;
   EMBEDDING_PROVIDER?: string;
   // Crawling Performance Settings

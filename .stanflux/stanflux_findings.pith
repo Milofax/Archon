@@ -1,0 +1,9 @@
+#PITH:1.2
+#FINDINGS
+
+2025-12-03:todos_nicht_geplant:
+  was:Bei HTML-Entity-Fix direkt implementiert ohne vorher Todos anzulegen
+  warum:Aufgabe wirkte "offensichtlich" → Warnsignal ignoriert
+  pattern:Bei "einfachen" Fixes wird Planung übersprungen → führt zu Mehraufwand (doppeltes Escaping übersehen, Frontend-Workaround statt DB-Migration)
+  learning:Auch bei vermeintlich simplen Tasks erst Todos anlegen → macht Scope sichtbar, verhindert Scope-Creep
+  status:·offen für Retro

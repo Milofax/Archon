@@ -32,3 +32,11 @@ release-notes-*.md
 # Supabase local data
 supabase/volumes/
 supabase/.temp/
+
+# Test artifacts (large files)
+test-pdf/
+archon-ui-main/playwright-report/
+archon-ui-main/test-results/
+
+# Local Claude Code config (not for upstream PRs)
+.claude/
