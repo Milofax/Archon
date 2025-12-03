@@ -112,6 +112,8 @@ dev_environment:
     check_logs:docker compose logs archon-server --tail 50
     docker_nicht_gestartet:Docker Desktop startet NICHT automatisch beim Login→manuell öffnen
 
+[2025-12-03]:Test-after-Phase Regel→Nach JEDER Feature-Phase MUSS getestet werden (manuell + E2E) BEVOR nächste Phase beginnt|why:User-Feedback:"immer jede Phase testen!"|Konsequenz:Keine Batch-Implementierung ohne Zwischentests
+[2025-12-03]:UI-Tests sind Pflicht→Für UI-Features MÜSSEN Playwright E2E Tests geschrieben werden|why:Visuelle Features können nicht nur mit Unit-Tests abgedeckt werden
 [2025-12-03]:Unified Progress UI Feature→PDF Upload bekommt gleiches "Kino" wie Web Crawl|why:Große PDFs (300+ Seiten, 100k+ Wörter) verdienen gleichen Feedback wie große Crawls
   [2025-12-03]:Page-Progress via page_chunks=True→pymupdf4llm.to_markdown(page_chunks=True) gibt Liste pro Seite zurück|why:Ermöglicht echten Page-by-page Progress ohne Library-Fork
   [2025-12-03]:OCR-Progress hinzufügen→Tesseract OCR hat Page-Schleife, kann Progress emittieren|why:Gescannte PDFs können lange dauern, User braucht Feedback

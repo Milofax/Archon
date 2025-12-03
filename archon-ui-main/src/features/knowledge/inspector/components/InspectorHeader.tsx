@@ -4,14 +4,16 @@
  */
 
 import { formatDistanceToNow } from "date-fns";
-import { Briefcase, Calendar, File, Globe, Terminal } from "lucide-react";
+import { Briefcase, Calendar, File, FileText, Globe, Terminal } from "lucide-react";
 import { cn } from "../../../ui/primitives/styles";
 import type { KnowledgeItem } from "../../types";
 
+export type ViewMode = "summary" | "documents" | "code";
+
 interface InspectorHeaderProps {
   item: KnowledgeItem;
-  viewMode: "documents" | "code";
-  onViewModeChange: (mode: "documents" | "code") => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
   documentCount: number;
   codeCount: number;
   filteredDocumentCount: number;
@@ -96,6 +98,19 @@ export const InspectorHeader: React.FC<InspectorHeaderProps> = ({
       <div className="flex items-center gap-4">
         <button
           type="button"
+          onClick={() => onViewModeChange("summary")}
+          className={cn(
+            "pb-2 px-1 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5",
+            viewMode === "summary"
+              ? "text-cyan-400 border-cyan-400"
+              : "text-gray-500 border-transparent hover:text-gray-300",
+          )}
+        >
+          <FileText className="w-4 h-4" />
+          Summary
+        </button>
+        <button
+          type="button"
           onClick={() => onViewModeChange("documents")}
           className={cn(
             "pb-2 px-1 text-sm font-medium border-b-2 transition-colors",
@@ -120,12 +135,14 @@ export const InspectorHeader: React.FC<InspectorHeaderProps> = ({
         </button>
         <div className="flex-1" />
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>
-            Showing{" "}
-            {viewMode === "documents"
-              ? `${filteredDocumentCount} of ${documentCount}`
-              : `${filteredCodeCount} of ${codeCount}`}
-          </span>
+          {viewMode !== "summary" && (
+            <span>
+              Showing{" "}
+              {viewMode === "documents"
+                ? `${filteredDocumentCount} of ${documentCount}`
+                : `${filteredCodeCount} of ${codeCount}`}
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}

@@ -26,6 +26,7 @@ export interface KnowledgeItemMetadata {
 export interface KnowledgeItem {
   id: string;
   title: string;
+  summary?: string;
   url: string;
   source_id: string;
   source_type: "url" | "file";

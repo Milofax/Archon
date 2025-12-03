@@ -10,7 +10,7 @@ import { cn } from "../../../ui/primitives/styles";
 import type { CodeExample, DocumentChunk } from "../../types";
 
 interface InspectorSidebarProps {
-  viewMode: "documents" | "code";
+  viewMode: "documents" | "code"; // Summary mode doesn't show sidebar
   searchQuery: string;
   onSearchChange: (query: string) => void;
   items: DocumentChunk[] | CodeExample[];

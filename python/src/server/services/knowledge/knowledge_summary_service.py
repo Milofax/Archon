@@ -133,9 +133,10 @@ class KnowledgeSummaryService:
                         safe_logfire_info(f"Knowledge type not found in metadata for {source_id}, defaulting to technical")
                         knowledge_type = "technical"
 
-                    summary = {
+                    summary_obj = {
                         "source_id": source_id,
                         "title": source.get("title", source.get("summary", "Untitled")),
+                        "summary": source.get("summary", ""),
                         "url": first_url,
                         "status": "active",  # Always active for now
                         "document_count": doc_counts.get(source_id, 0),
@@ -146,7 +147,7 @@ class KnowledgeSummaryService:
                         "updated_at": source.get("updated_at"),
                         "metadata": metadata,  # Include full metadata (contains tags)
                     }
-                    summaries.append(summary)
+                    summaries.append(summary_obj)
 
             safe_logfire_info(
                 f"Knowledge summaries fetched | count={len(summaries)} | total={total}"

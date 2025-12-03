@@ -1,5 +1,40 @@
 #PITH:1.2
 #TODOS
+serious-ui-improvements:
+  #Ziel:Premium UI Features von archon-fly cherry-picken
+  #Branch:feature/serious-ui-improvements
+  ✓Phase1:3D Card Tilt Effect
+    ✓useCardTilt.ts Hook erstellen
+    ✓KnowledgeCard.tsx integrieren
+    ✓E2E Tests:5/5 passed (card-3d class,hover transform,reflection,bounce)
+  ✓Phase2:Mermaid Diagram Support
+    ✓mermaid npm Package hinzufügen
+    ✓MermaidRenderer.tsx erstellen
+    ✓ContentViewer integrieren
+    ✓E2E Tests:3/3 passed (no errors,markdown renders,mermaid blocks)
+  ✓Integration:1/1 passed (hover→click→view→close flow)
+
+  ##Phase3:Knowledge Detail/Summary Feature - NEUSTART
+  #Status:Änderungen reverted, Recherche-Phase
+  #Problem:Ohne Analyse losgelegt→falsche Architektur (separates Modal statt Tab im Inspector)
+
+  ###Recherche-Plan (ERST das, DANN implementieren)
+  ·R1:archon-fly Inspector analysieren - welche Tabs existieren?
+  ·R2:archon-fly Summary-Feature analysieren - wie ist View/Edit implementiert?
+  ·R3:Bestehenden KnowledgeInspector in archon-ui-main verstehen
+  ·R4:Unterschiede dokumentieren
+
+  ###Perspektiven (nach Recherche)
+  ·P1:strategisch - Was ist das Ziel des Summary-Features?
+  ·P2:handwerklich - Wie integriert es sich in bestehende Architektur?
+  ·P3:pragmatisch - Minimaler Aufwand für maximalen Nutzen?
+  ·P4:kreativ - Gibt es bessere Alternativen?
+  ·P5:ästhetisch - Passt das UX zum Rest?
+  ·P6:exzellenz - Würden wir das so abliefern?
+
+  ###Umsetzung (NACH User-Freigabe)
+  ·Umsetzungsplan basierend auf Recherche+Perspektiven
+
 unified-progress-ui:
   #Ziel:Gleiches "Kino" für Web Crawl + PDF Upload
   #Kriterium:PDF zeigt Live-Stats (Pages,Chunks,Code Blocks) im großen Panel wie Web Crawl

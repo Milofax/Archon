@@ -153,6 +153,7 @@ class KnowledgeItemService:
                 item = {
                     "id": source_id,
                     "title": source.get("title", source.get("summary", "Untitled")),
+                    "summary": source.get("summary", ""),
                     "url": display_url,
                     "source_id": source_id,
                     "source_type": source_type,  # Add top-level source_type field
@@ -372,6 +373,7 @@ class KnowledgeItemService:
         return {
             "id": source_id,
             "title": source.get("title", source.get("summary", "Untitled")),
+            "summary": source.get("summary", ""),
             "url": first_page_url,
             "source_id": source_id,
             "code_examples": code_examples,

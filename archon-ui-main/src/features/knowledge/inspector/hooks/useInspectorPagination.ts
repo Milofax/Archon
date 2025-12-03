@@ -9,10 +9,11 @@ import { STALE_TIMES } from "@/features/shared/config/queryPatterns";
 import { knowledgeKeys } from "../../hooks/useKnowledgeQueries";
 import { knowledgeService } from "../../services";
 import type { ChunksResponse, CodeExample, CodeExamplesResponse, DocumentChunk } from "../../types";
+import type { ViewMode } from "../components/InspectorHeader";
 
 export interface UseInspectorPaginationProps {
   sourceId: string;
-  viewMode: "documents" | "code";
+  viewMode: ViewMode;
   searchQuery: string;
 }
 
@@ -33,7 +34,10 @@ export function useInspectorPagination({
 }: UseInspectorPaginationProps): UseInspectorPaginationResult {
   const PAGE_SIZE = 100;
 
-  // Use infinite query for the current view mode
+  // Summary mode doesn't need pagination - only documents and code do
+  const isPaginatedMode = viewMode === "documents" || viewMode === "code";
+
+  // Use infinite query for documents/code modes only
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery<
     ChunksResponse | CodeExamplesResponse,
     Error
@@ -56,7 +60,7 @@ export function useInspectorPagination({
       const hasMore = (lastPage as ChunksResponse | CodeExamplesResponse)?.has_more;
       return hasMore ? allPages.length : undefined;
     },
-    enabled: !!sourceId,
+    enabled: !!sourceId && isPaginatedMode,
     staleTime: STALE_TIMES.normal,
     initialPageParam: 0,
   });

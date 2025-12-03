@@ -9,23 +9,22 @@ import { InspectorDialog, InspectorDialogContent, InspectorDialogTitle } from ".
 import type { CodeExample, DocumentChunk, InspectorSelectedItem, KnowledgeItem } from "../../types";
 import { useInspectorPagination } from "../hooks/useInspectorPagination";
 import { ContentViewer } from "./ContentViewer";
-import { InspectorHeader } from "./InspectorHeader";
+import { InspectorHeader, type ViewMode } from "./InspectorHeader";
 import { InspectorSidebar } from "./InspectorSidebar";
+import { SummaryViewer } from "./SummaryViewer";
 
 interface KnowledgeInspectorProps {
   item: KnowledgeItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialTab?: "documents" | "code";
+  initialTab?: ViewMode;
 }
-
-type ViewMode = "documents" | "code";
 
 export const KnowledgeInspector: React.FC<KnowledgeInspectorProps> = ({
   item,
   open,
   onOpenChange,
-  initialTab = "documents",
+  initialTab = "summary",
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
@@ -163,24 +162,31 @@ export const KnowledgeInspector: React.FC<KnowledgeInspectorProps> = ({
 
         {/* Main Content Area - Scrollable */}
         <div className="flex flex-1 min-h-0">
-          {/* Sidebar */}
-          <InspectorSidebar
-            viewMode={viewMode}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            items={currentItems as DocumentChunk[] | CodeExample[]}
-            selectedItemId={selectedItem?.id || null}
-            onItemSelect={handleItemSelect}
-            isLoading={isLoading}
-            hasNextPage={hasNextPage}
-            onLoadMore={fetchNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-          />
+          {viewMode === "summary" ? (
+            /* Summary View - Full width, no sidebar */
+            <SummaryViewer item={item} />
+          ) : (
+            <>
+              {/* Sidebar */}
+              <InspectorSidebar
+                viewMode={viewMode}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                items={currentItems as DocumentChunk[] | CodeExample[]}
+                selectedItemId={selectedItem?.id || null}
+                onItemSelect={handleItemSelect}
+                isLoading={isLoading}
+                hasNextPage={hasNextPage}
+                onLoadMore={fetchNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+              />
 
-          {/* Content Viewer */}
-          <div className="flex-1 min-h-0 bg-black/20 flex flex-col">
-            <ContentViewer selectedItem={selectedItem} onCopy={handleCopy} copiedId={copiedId} />
-          </div>
+              {/* Content Viewer */}
+              <div className="flex-1 min-h-0 bg-black/20 flex flex-col">
+                <ContentViewer selectedItem={selectedItem} onCopy={handleCopy} copiedId={copiedId} />
+              </div>
+            </>
+          )}
         </div>
       </InspectorDialogContent>
     </InspectorDialog>
