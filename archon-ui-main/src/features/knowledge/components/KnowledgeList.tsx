@@ -17,6 +17,7 @@ interface KnowledgeListProps {
   isLoading: boolean;
   error: Error | null;
   onRetry: () => void;
+  onOpenItem: (sourceId: string) => void;
   onViewDocument: (sourceId: string) => void;
   onViewCodeExamples?: (sourceId: string) => void;
   onDeleteSuccess: () => void;
@@ -54,6 +55,7 @@ export const KnowledgeList: React.FC<KnowledgeListProps> = ({
   isLoading,
   error,
   onRetry,
+  onOpenItem,
   onViewDocument,
   onViewCodeExamples,
   onDeleteSuccess,
@@ -152,7 +154,7 @@ export const KnowledgeList: React.FC<KnowledgeListProps> = ({
         variants={itemVariants}
         className="bg-black/30 rounded-lg border border-white/10 overflow-hidden"
       >
-        <KnowledgeTable items={items} onViewDocument={onViewDocument} onDeleteSuccess={onDeleteSuccess} />
+        <KnowledgeTable items={items} onOpenItem={onOpenItem} onViewDocument={onViewDocument} onDeleteSuccess={onDeleteSuccess} />
       </motion.div>
     );
   }
@@ -172,6 +174,7 @@ export const KnowledgeList: React.FC<KnowledgeListProps> = ({
             <motion.div key={item.source_id} layout variants={itemVariants} exit="exit">
               <KnowledgeCard
                 item={item}
+                onOpen={() => onOpenItem(item.source_id)}
                 onViewDocument={() => onViewDocument(item.source_id)}
                 onViewCodeExamples={onViewCodeExamples ? () => onViewCodeExamples(item.source_id) : undefined}
                 onDeleteSuccess={onDeleteSuccess}

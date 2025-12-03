@@ -12,6 +12,7 @@ import { KnowledgeHeader } from "../components/KnowledgeHeader";
 import { KnowledgeList } from "../components/KnowledgeList";
 import { useKnowledgeSummaries } from "../hooks/useKnowledgeQueries";
 import { KnowledgeInspector } from "../inspector/components/KnowledgeInspector";
+import type { ViewMode } from "../inspector/components/InspectorHeader";
 import type { KnowledgeItem, KnowledgeItemsFilter } from "../types";
 
 export const KnowledgeView = () => {
@@ -23,7 +24,7 @@ export const KnowledgeView = () => {
   // Dialog state
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [inspectorItem, setInspectorItem] = useState<KnowledgeItem | null>(null);
-  const [inspectorInitialTab, setInspectorInitialTab] = useState<"documents" | "code">("documents");
+  const [inspectorInitialTab, setInspectorInitialTab] = useState<ViewMode>("summary");
 
   // Build filter object for API - memoize to prevent recreating on every render
   const filter = useMemo<KnowledgeItemsFilter>(() => {
@@ -96,6 +97,15 @@ export const KnowledgeView = () => {
     setIsAddDialogOpen(true);
   };
 
+  const handleOpenInspector = (sourceId: string) => {
+    // Find the item and open inspector to summary tab (default)
+    const item = knowledgeItems.find((k) => k.source_id === sourceId);
+    if (item) {
+      setInspectorInitialTab("summary");
+      setInspectorItem(item);
+    }
+  };
+
   const handleViewDocument = (sourceId: string) => {
     // Find the item and open inspector to documents tab
     const item = knowledgeItems.find((k) => k.source_id === sourceId);
@@ -156,6 +166,7 @@ export const KnowledgeView = () => {
           isLoading={isLoading}
           error={error}
           onRetry={refetch}
+          onOpenItem={handleOpenInspector}
           onViewDocument={handleViewDocument}
           onViewCodeExamples={handleViewCodeExamples}
           onDeleteSuccess={handleDeleteSuccess}

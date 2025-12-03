@@ -24,6 +24,7 @@ import { KnowledgeCardType } from "./KnowledgeCardType";
 
 interface KnowledgeCardProps {
   item: KnowledgeItem;
+  onOpen: () => void;
   onViewDocument: () => void;
   onViewCodeExamples?: () => void;
   onExport?: () => void;
@@ -34,6 +35,7 @@ interface KnowledgeCardProps {
 
 export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
   item,
+  onOpen,
   onViewDocument,
   onViewCodeExamples,
   onExport,
@@ -106,11 +108,11 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
       className={cn("relative group cursor-pointer", optimistic && "opacity-80")}
       role="button"
       tabIndex={0}
-      onClick={() => onViewDocument()}
+      onClick={() => onOpen()}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onViewDocument();
+          onOpen();
         }
       }}
     >

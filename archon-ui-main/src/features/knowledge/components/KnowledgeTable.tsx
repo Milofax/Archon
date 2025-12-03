@@ -21,11 +21,12 @@ import type { KnowledgeItem } from "../types";
 
 interface KnowledgeTableProps {
   items: KnowledgeItem[];
+  onOpenItem: (sourceId: string) => void;
   onViewDocument: (sourceId: string) => void;
   onDeleteSuccess: () => void;
 }
 
-export const KnowledgeTable: React.FC<KnowledgeTableProps> = ({ items, onViewDocument, onDeleteSuccess }) => {
+export const KnowledgeTable: React.FC<KnowledgeTableProps> = ({ items, onOpenItem, onViewDocument, onDeleteSuccess }) => {
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const { showToast } = useToast();
   const deleteMutation = useDeleteKnowledgeItem();
@@ -186,7 +187,7 @@ export const KnowledgeTable: React.FC<KnowledgeTableProps> = ({ items, onViewDoc
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onViewDocument(item.source_id)}
+                        onClick={() => onOpenItem(item.source_id)}
                         className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                       >
                         <Eye className="w-4 h-4" />
