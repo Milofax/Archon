@@ -260,6 +260,10 @@ class KnowledgeItemService:
             if "title" in updates:
                 update_data["title"] = updates["title"]
 
+            # Handle summary updates
+            if "summary" in updates:
+                update_data["summary"] = updates["summary"]
+
             # Handle metadata updates
             metadata_fields = [
                 "description",

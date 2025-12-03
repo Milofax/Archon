@@ -119,7 +119,8 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
     await expect(inspector).toBeVisible({ timeout: 5000 });
 
     // Summary tab should be active (cyan color indicates active)
-    const summaryTab = inspector.locator('button:has-text("Summary")');
+    // Use exact match to avoid matching "Regenerate Summary" button
+    const summaryTab = inspector.getByRole('button', { name: 'Summary', exact: true });
     await expect(summaryTab).toBeVisible();
     await expect(summaryTab).toHaveClass(/text-cyan-400/);
   });
@@ -196,8 +197,8 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
     await codeTab.click();
     await expect(codeTab).toHaveClass(/text-cyan-400/);
 
-    // Click back to Summary
-    const summaryTab = inspector.locator('button:has-text("Summary")');
+    // Click back to Summary (use exact match to avoid "Regenerate Summary")
+    const summaryTab = inspector.getByRole('button', { name: 'Summary', exact: true });
     await summaryTab.click();
     await expect(summaryTab).toHaveClass(/text-cyan-400/);
 
@@ -231,6 +232,167 @@ test.describe('Phase 3: Summary Tab in KnowledgeInspector', () => {
   });
 });
 
+test.describe('Phase 3b: Summary Beautiful/Edit Feature', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('Summary view shows Beautiful/Edit toggle buttons', async ({ page }) => {
+    const cards = page.locator('[role="button"].group');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Check for Beautiful and Edit toggle buttons
+    const beautifulBtn = inspector.locator('button:has-text("Beautiful")');
+    const editBtn = inspector.locator('button:has-text("Edit")');
+
+    await expect(beautifulBtn).toBeVisible();
+    await expect(editBtn).toBeVisible();
+  });
+
+  test('Beautiful mode is active by default', async ({ page }) => {
+    const cards = page.locator('[role="button"].group');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Beautiful button should be active (cyan color)
+    const beautifulBtn = inspector.locator('button:has-text("Beautiful")');
+    await expect(beautifulBtn).toHaveClass(/bg-cyan-500/);
+  });
+
+  test('Edit mode shows textarea and live preview', async ({ page }) => {
+    const cards = page.locator('[role="button"].group');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    // Click Edit button
+    const editBtn = inspector.locator('button:has-text("Edit")');
+
+    // Check if Edit button is enabled (disabled if no summary)
+    const isDisabled = await editBtn.isDisabled();
+    if (isDisabled) {
+      // No summary exists - skip test
+      test.skip();
+      return;
+    }
+
+    await editBtn.click();
+
+    // Should show Markdown Editor label
+    await expect(inspector.locator('text=Markdown Editor')).toBeVisible();
+
+    // Should show Live Preview label
+    await expect(inspector.locator('text=Live Preview')).toBeVisible();
+
+    // Should show textarea
+    await expect(inspector.locator('textarea')).toBeVisible();
+
+    // Should show Save and Cancel buttons
+    await expect(inspector.locator('button:has-text("Save Changes")')).toBeVisible();
+    await expect(inspector.locator('button:has-text("Cancel")')).toBeVisible();
+  });
+
+  test('Cancel button returns to view mode', async ({ page }) => {
+    const cards = page.locator('[role="button"].group');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    const editBtn = inspector.locator('button:has-text("Edit")');
+    const isDisabled = await editBtn.isDisabled();
+    if (isDisabled) {
+      test.skip();
+      return;
+    }
+
+    await editBtn.click();
+
+    // Should be in edit mode
+    await expect(inspector.locator('text=Markdown Editor')).toBeVisible();
+
+    // Click Cancel
+    await inspector.locator('button:has-text("Cancel")').click();
+
+    // Should be back in view mode (Beautiful button active)
+    const beautifulBtn = inspector.locator('button:has-text("Beautiful")');
+    await expect(beautifulBtn).toHaveClass(/bg-cyan-500/);
+
+    // Markdown Editor should not be visible
+    await expect(inspector.locator('text=Markdown Editor')).not.toBeVisible();
+  });
+
+  test('Live preview updates as user types', async ({ page }) => {
+    const cards = page.locator('[role="button"].group');
+    const cardCount = await cards.count();
+
+    if (cardCount === 0) {
+      test.skip();
+      return;
+    }
+
+    await cards.first().click();
+
+    const inspector = page.locator('[role="dialog"]');
+    await expect(inspector).toBeVisible({ timeout: 5000 });
+
+    const editBtn = inspector.locator('button:has-text("Edit")');
+    const isDisabled = await editBtn.isDisabled();
+    if (isDisabled) {
+      test.skip();
+      return;
+    }
+
+    await editBtn.click();
+
+    // Type in textarea
+    const textarea = inspector.locator('textarea');
+    await textarea.fill('# Test Heading\n\nThis is a **test** paragraph.');
+
+    // Check that preview shows formatted content
+    // The heading should be rendered as h1 in the preview
+    const preview = inspector.locator('.prose');
+    await expect(preview.locator('h1')).toContainText('Test Heading');
+    await expect(preview.locator('strong')).toContainText('test');
+  });
+});
+
 test.describe('Integration: Knowledge Card Flow', () => {
 
   test('Full interaction flow: click card -> view summary -> switch tabs -> close', async ({ page }) => {
@@ -254,8 +416,8 @@ test.describe('Integration: Knowledge Card Flow', () => {
     const inspector = page.locator('[role="dialog"]');
     await expect(inspector).toBeVisible({ timeout: 5000 });
 
-    // 2. Verify Summary tab is active
-    const summaryTab = inspector.locator('button:has-text("Summary")');
+    // 2. Verify Summary tab is active (use exact match to avoid "Regenerate Summary")
+    const summaryTab = inspector.getByRole('button', { name: 'Summary', exact: true });
     await expect(summaryTab).toHaveClass(/text-cyan-400/);
 
     // 3. Switch to Documents tab
