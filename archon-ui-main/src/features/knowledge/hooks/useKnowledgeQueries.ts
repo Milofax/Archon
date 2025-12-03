@@ -664,6 +664,34 @@ export function useRefreshKnowledgeItem() {
 }
 
 /**
+ * Regenerate summary mutation
+ * Generates a more detailed AI summary for a knowledge item
+ */
+export function useRegenerateSummary() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (sourceId: string) => knowledgeService.regenerateSummary(sourceId),
+    onSuccess: (data, sourceId) => {
+      showToast("Summary regenerated successfully", "success");
+
+      // Invalidate the specific item detail
+      queryClient.invalidateQueries({ queryKey: knowledgeKeys.detail(sourceId) });
+
+      // Invalidate summaries to show updated summary in cards
+      queryClient.invalidateQueries({ queryKey: knowledgeKeys.summariesPrefix() });
+
+      return data;
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : "Failed to regenerate summary";
+      showToast(errorMessage, "error");
+    },
+  });
+}
+
+/**
  * Knowledge Summaries Hook with Active Operations Tracking
  * Fetches lightweight summaries and tracks active crawl operations
  * Only polls when there are active operations that we started

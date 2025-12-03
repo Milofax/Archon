@@ -1313,6 +1313,142 @@ async def knowledge_health():
 
 
 
+@router.post("/knowledge-items/{source_id}/regenerate-summary")
+async def regenerate_summary(source_id: str):
+    """
+    Regenerate the AI summary for a knowledge item with more detail.
+
+    Uses the configured chat LLM (MODEL_CHOICE) to generate a comprehensive
+    summary including key features, use cases, and technical highlights.
+    """
+    try:
+        safe_logfire_info(f"Regenerating summary | source_id={source_id}")
+
+        supabase = get_supabase_client()
+
+        # Get the source to verify it exists
+        source_result = (
+            supabase.table("archon_sources")
+            .select("source_id, title")
+            .eq("source_id", source_id)
+            .execute()
+        )
+
+        if not source_result.data:
+            raise HTTPException(
+                status_code=404,
+                detail={"error": f"Knowledge item {source_id} not found"}
+            )
+
+        source_title = source_result.data[0].get("title", source_id)
+
+        # Get sample content from crawled pages for this source
+        content_result = (
+            supabase.table("archon_crawled_pages")
+            .select("content")
+            .eq("source_id", source_id)
+            .limit(10)
+            .execute()
+        )
+
+        if not content_result.data:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "No content found for this knowledge item"}
+            )
+
+        # Combine content samples
+        combined_content = "\n\n---\n\n".join(
+            page.get("content", "")[:3000] for page in content_result.data
+        )
+
+        # Truncate to reasonable size for LLM
+        if len(combined_content) > 25000:
+            combined_content = combined_content[:25000]
+
+        # Generate detailed summary using LLM
+        from ..services.llm_provider_service import extract_message_text, get_llm_client
+
+        # Detailed prompt for comprehensive summary
+        prompt = f"""<source_content>
+{combined_content}
+</source_content>
+
+The above content is from the documentation for '{source_title}'.
+
+Please provide a COMPREHENSIVE summary that includes:
+
+1. **Overview**: What is this library/tool/framework and what problem does it solve? (2-3 sentences)
+
+2. **Key Features**: List 3-5 main features or capabilities
+
+3. **Use Cases**: When would a developer use this? (2-3 examples)
+
+4. **Technical Highlights**: Any notable architecture decisions, performance characteristics, or integrations
+
+Keep the summary informative but concise (aim for 200-400 words total). Use clear, technical language appropriate for developers.
+"""
+
+        async with get_llm_client() as client:
+            # Get model choice
+            rag_settings = await credential_service.get_credentials_by_category("rag_strategy")
+            model_choice = rag_settings.get("MODEL_CHOICE", "gpt-4o-mini")
+
+            safe_logfire_info(f"Generating detailed summary using model: {model_choice}")
+
+            response = await client.chat.completions.create(
+                model=model_choice,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a technical writer who creates clear, comprehensive documentation summaries for developers.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+            if not response or not response.choices:
+                raise HTTPException(
+                    status_code=500,
+                    detail={"error": "Failed to generate summary - no response from LLM"}
+                )
+
+            choice = response.choices[0]
+            summary_text, _, _ = extract_message_text(choice)
+
+            if not summary_text:
+                raise HTTPException(
+                    status_code=500,
+                    detail={"error": "Failed to generate summary - empty response from LLM"}
+                )
+
+            new_summary = summary_text.strip()
+
+        # Update the source with new summary
+        supabase.table("archon_sources").update({
+            "summary": new_summary
+        }).eq("source_id", source_id).execute()
+
+        safe_logfire_info(
+            f"Summary regenerated successfully | source_id={source_id} | length={len(new_summary)}"
+        )
+
+        return {
+            "success": True,
+            "source_id": source_id,
+            "summary": new_summary,
+            "message": "Summary regenerated successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        safe_logfire_error(
+            f"Failed to regenerate summary | error={str(e)} | source_id={source_id}"
+        )
+        raise HTTPException(status_code=500, detail={"error": str(e)})
+
+
 @router.post("/knowledge/re-embed")
 async def start_re_embed():
     """

@@ -265,6 +265,25 @@ export const knowledgeService = {
   },
 
   /**
+   * Regenerate the AI summary for a knowledge item with more detail
+   */
+  async regenerateSummary(sourceId: string): Promise<{
+    success: boolean;
+    source_id: string;
+    summary: string;
+    message: string;
+  }> {
+    return callAPIWithETag<{
+      success: boolean;
+      source_id: string;
+      summary: string;
+      message: string;
+    }>(`/api/knowledge-items/${sourceId}/regenerate-summary`, {
+      method: "POST",
+    });
+  },
+
+  /**
    * Start re-embedding all documents with the current embedding model
    */
   async startReEmbed(): Promise<{ success: boolean; progressId: string; message: string }> {
